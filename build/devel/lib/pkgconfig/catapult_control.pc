@@ -1,8 +1,0 @@
-prefix=/home/erle/gym-gazebo/gym_gazebo/envs/installation/catkin_ws/src/catapult_control/build/devel
-
-Name: catapult_control
-Description: Description of catapult_control
-Version: 0.0.0
-Cflags: -I/home/erle/gym-gazebo/gym_gazebo/envs/installation/catkin_ws/src/catapult_control/build/devel/include -I/home/erle/gym-gazebo/gym_gazebo/envs/installation/catkin_ws/src/catapult_control/include
-Libs: -L/home/erle/gym-gazebo/gym_gazebo/envs/installation/catkin_ws/src/catapult_control/build/devel/lib 
-Requires: roscpp message_runtime std_msgs

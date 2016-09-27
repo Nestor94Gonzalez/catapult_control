@@ -1,2 +1,0 @@
-- setup-file:
-    local-name: /home/erle/gym-gazebo/gym_gazebo/envs/installation/catkin_ws/src/catapult_control/build/devel/setup.sh
