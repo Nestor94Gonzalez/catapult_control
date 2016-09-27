@@ -8,8 +8,9 @@
 #include "ros/ros.h"
 #include "ros/callback_queue.h"
 #include "ros/subscribe_options.h"
-#include "std_msgs/Float32MultiArray.h"
 #include "catapult_control/Catapult.h"
+#include <iostream>
+#include <thread>
 
 namespace gazebo
 {
@@ -82,10 +83,10 @@ namespace gazebo
 
       // Create a named topic, and subscribe to it.
       ros::SubscribeOptions so =
-        ros::SubscribeOptions::create<catapult_control::Catapiult>(
+        ros::SubscribeOptions::create<catapult_control::Catapult>(
             "/" + this->model->GetName() + "/catapult_cmd",
             1,
-            boost::bind(&CatapultPlugin::OnRosMsg, this, _1),
+            boost::bind(&CatapultPlugin::OnRosMsg, this, _1, _2),
             ros::VoidPtr(), &this->rosQueue);
       this->rosSub = this->rosNode->subscribe(so);
 
@@ -97,10 +98,10 @@ namespace gazebo
 
     }
 
-    public: void OnRosMsg(const std_msgs::Float32ConstPtr &_msg)
+    public: void OnRosMsg(const catapult_control::Catapult &_msg)
     {
-      this->SetVelocity(_msg->data);
-      //this->SetUpperLimit(_msg->data.);
+      this->SetVelocity(_msg.velocity);
+      this->SetUpperLimit(_msg.upper_limit);
     }
 
     /// \brief ROS helper function that processes messages
@@ -144,12 +145,6 @@ namespace gazebo
     /// \brief A thread the keeps running the rosQueue
     private: std::thread rosQueueThread;
 
-    void callback(const std_msgs::String::ConstPtr& msg)
-    {
-      ROS_INFO("I heard: [%s]", msg->data.c_str());
-      //this->SetVelocity(msg->data->a)
-      //this->SetUpperLimit(msg->data->b);
-    }
   };
 
   // Tell Gazebo about this plugin, so that Gazebo can call Load on this plugin.
