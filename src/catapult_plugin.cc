@@ -57,14 +57,14 @@ namespace gazebo
 
       // Default to zero velocity
       double velocity = 300;
-      double upper_limit = 1;
+      double upper_limit = 2;
 
       this->SetUpperLimit(upper_limit);
       this->SetVelocity(velocity);
 
       // Create the node
-      this->node = transport::NodePtr(new transport::Node());
-      this->node->Init(this->model->GetWorld()->GetName());
+      //this->node = transport::NodePtr(new transport::Node());
+      //this->node->Init(this->model->GetWorld()->GetName());
 
       
       // ROS NODE
@@ -77,27 +77,31 @@ namespace gazebo
             ros::init_options::NoSigintHandler);
       }
 
-      ros::NodeHandle n;
 
-      ros::Subscriber sub = n.subscribe("gazebo_catapult_control_chatter", 1000, &CatapultPlugin::OnRosMsg, this);
-      ros::spin();
+      // Create our ROS node. This acts in a similar manner to
+      // the Gazebo node
+      this->rosNode.reset(new ros::NodeHandle("gazebo_catapult_control_listener"));
+
+      // Create a named topic, and subscribe to it.
+      typedef boost::shared_ptr<catapult_control::Catapult const> CatapultConstPtr;
+
+      ros::SubscribeOptions so =
+        ros::SubscribeOptions::create<catapult_control::Catapult>(
+            "/" + this->model->GetName() + "/chatter",
+            1,
+            boost::bind(&CatapultPlugin::OnRosMsg, this, _1),
+            ros::VoidPtr(), &this->rosQueue);
+
+      this->rosSub = this->rosNode->subscribe(so);
+
+      this->rosQueueThread = std::thread(std::bind(&CatapultPlugin::QueueThread, this));
 
     }
 
-    public: void OnRosMsg(const catapult_control::Catapult _msg)
+    public: void OnRosMsg(const catapult_control::CatapultConstPtr &_msg)
     {
-      this->SetVelocity(_msg.velocity);
-      this->SetUpperLimit(_msg.upper_limit);
-    }
-
-    /// \brief ROS helper function that processes messages
-    private: void QueueThread()
-    {
-      static const double timeout = 0.01;
-      while (this->rosNode->ok())
-      {
-        this->rosQueue.callAvailable(ros::WallDuration(timeout));
-      }
+      this->SetVelocity(_msg->velocity);
+      this->SetUpperLimit(_msg->upper_limit);
     }
 
     public: void SetVelocity(const double &_vel)
@@ -111,7 +115,15 @@ namespace gazebo
       this->joint->SetHighStop(0,_upper_limit);
     }
 
-
+    /// \brief ROS helper function that processes messages
+    private: void QueueThread()
+    {
+      static const double timeout = 0.01;
+      while (this->rosNode->ok())
+      {
+        this->rosQueue.callAvailable(ros::WallDuration(timeout));
+      }
+    }
     /// \brief A node used for transport
     private: transport::NodePtr node;
     /// \brief A subscriber to a named topic.
