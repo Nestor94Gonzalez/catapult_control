@@ -73,32 +73,18 @@ namespace gazebo
       {
         int argc = 0;
         char **argv = NULL;
-        ros::init(argc, argv, "gazebo_catapult_control",
+        ros::init(argc, argv, "gazebo_catapult_control_listener",
             ros::init_options::NoSigintHandler);
       }
 
-      // Create our ROS node. This acts in a similar manner to
-      // the Gazebo node
-      this->rosNode.reset(new ros::NodeHandle("gazebo_catapult_control"));
+      ros::NodeHandle n;
 
-      // Create a named topic, and subscribe to it.
-      ros::SubscribeOptions so =
-        ros::SubscribeOptions::create<catapult_control::Catapult>(
-            "/" + this->model->GetName() + "/catapult_cmd",
-            1,
-            boost::bind(&CatapultPlugin::OnRosMsg, this, _1, _2),
-            ros::VoidPtr(), &this->rosQueue);
-      this->rosSub = this->rosNode->subscribe(so);
-
-      // Spin up the queue helper thread.
-      this->rosQueueThread =
-        std::thread(std::bind(&CatapultPlugin::QueueThread, this));
-
-
+      ros::Subscriber sub = n.subscribe("gazebo_catapult_control_chatter", 1000, &CatapultPlugin::OnRosMsg, this);
+      ros::spin();
 
     }
 
-    public: void OnRosMsg(const catapult_control::Catapult &_msg)
+    public: void OnRosMsg(const catapult_control::Catapult _msg)
     {
       this->SetVelocity(_msg.velocity);
       this->SetUpperLimit(_msg.upper_limit);
