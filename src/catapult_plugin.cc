@@ -14,17 +14,12 @@
 
 namespace gazebo
 {
-  /// \brief A plugin to control a Catapult sensor.
+  // A plugin to control a Catapult.
   class CatapultPlugin : public ModelPlugin
   {
-    /// \brief Constructor
     public: CatapultPlugin() {}
 
-    /// \brief The load function is called by Gazebo when the plugin is
-    /// inserted into simulation
-    /// \param[in] _model A pointer to the model that this plugin is
-    /// attached to.
-    /// \param[in] _sdf A pointer to the plugin's SDF element.
+    // Function called by Gazebo when the plugin is inserted into simulation
     public: virtual void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     {
       // Safety check
@@ -55,19 +50,13 @@ namespace gazebo
           this->joint->GetScopedName(), this->pid);
 
 
-      // Default to zero velocity
-      double velocity = 300;
-      double upper_limit = 2;
-
-      this->SetUpperLimit(upper_limit);
-      this->SetVelocity(velocity);
-
-      // Create the node
-      //this->node = transport::NodePtr(new transport::Node());
-      //this->node->Init(this->model->GetWorld()->GetName());
+      // Default to zero velocity/upper_limit
+      //double velocity = 0;
+      //double upper_limit = 0;
+      //this->SetUpperLimit(upper_limit);
+      //this->SetVelocity(velocity);
 
       
-      // ROS NODE
       // Initialize ros, if it has not already bee initialized.
       if (!ros::isInitialized())
       {
@@ -77,14 +66,13 @@ namespace gazebo
             ros::init_options::NoSigintHandler);
       }
 
-
-      // Create our ROS node. This acts in a similar manner to
-      // the Gazebo node
+      // Create the ROS node.
       this->rosNode.reset(new ros::NodeHandle("gazebo_catapult_control_listener"));
 
-      // Create a named topic, and subscribe to it.
+      // Create CatapultConstPtr needed for boost
       typedef boost::shared_ptr<catapult_control::Catapult const> CatapultConstPtr;
 
+      // Create a named topic, and subscribe to it.
       ros::SubscribeOptions so =
         ros::SubscribeOptions::create<catapult_control::Catapult>(
             "/" + this->model->GetName() + "/chatter",
@@ -93,9 +81,7 @@ namespace gazebo
             ros::VoidPtr(), &this->rosQueue);
 
       this->rosSub = this->rosNode->subscribe(so);
-
       this->rosQueueThread = std::thread(std::bind(&CatapultPlugin::QueueThread, this));
-
     }
 
     public: void OnRosMsg(const catapult_control::CatapultConstPtr &_msg)
@@ -124,6 +110,7 @@ namespace gazebo
         this->rosQueue.callAvailable(ros::WallDuration(timeout));
       }
     }
+
     /// \brief A node used for transport
     private: transport::NodePtr node;
     /// \brief A subscriber to a named topic.
