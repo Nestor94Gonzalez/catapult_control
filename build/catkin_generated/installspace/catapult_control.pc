@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: catapult_control
+Description: Description of catapult_control
+Version: 0.0.0
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib 
+Requires: roscpp message_runtime std_msgs
