@@ -104,7 +104,7 @@ namespace gazebo
     /// \brief ROS helper function that processes messages
     private: void QueueThread()
     {
-      static const double timeout = 0.01;
+      static const double timeout = 0.001;
       while (this->rosNode->ok())
       {
         this->rosQueue.callAvailable(ros::WallDuration(timeout));
